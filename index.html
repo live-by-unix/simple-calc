@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #0b0d10;
+    --panel: #15181d;
+    --display: #0e1013;
+    --button: #22262d;
+    --button-hover: #30353e;
+    --operator: #303640;
+    --accent: #4d86ff;
+    --text: #ffffff;
+    --muted: #8d949f;
+    --danger: #ef5968;
+    --border: rgba(255,255,255,.08);
+}
+
+body.light {
+    --bg: #eef1f5;
+    --panel: #ffffff;
+    --display: #f5f6f8;
+    --button: #e5e8ed;
+    --button-hover: #d8dce3;
+    --operator: #d9dee5;
+    --accent: #3978ed;
+    --text: #15171b;
+    --muted: #737983;
+    --danger: #d93f4d;
+    --border: rgba(0,0,0,.08);
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 20px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app {
+    width: 1050px;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 470px 1fr;
+    gap: 20px;
+}
+
+.calculator,
+.history {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.3);
+}
+
+.calculator {
+    padding: 16px;
+}
+
+.topbar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.top-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-button {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--button);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.display {
+    height: 155px;
+    margin-bottom: 14px;
+    padding: 20px;
+    background: var(--display);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+}
+
+.expression {
+    height: 28px;
+    color: var(--muted);
+    text-align: right;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.result {
+    color: var(--text);
+    font-size: 54px;
+    font-weight: 750;
+    line-height: 1;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 9px;
+}
+
+.calc-button {
+    height: 64px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--button);
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: transform .08s, background .15s;
+}
+
+.calc-button:hover {
+    background: var(--button-hover);
+}
+
+.calc-button:active {
+    transform: scale(.94);
+}
+
+.operator {
+    background: var(--operator);
+}
+
+.equals {
+    background: var(--accent);
+    color: white;
+}
+
+.danger {
+    color: var(--danger);
+}
+
+.wide {
+    grid-column: span 2;
+}
+
+.history {
+    min-height: 500px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.history-title {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.clear-history {
+    border: 0;
+    background: transparent;
+    color: var(--danger);
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.history-list {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    max-height: 620px;
+}
+
+.empty {
+    padding: 50px 10px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.history-item {
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--display);
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background: var(--button);
+}
+
+.history-expression {
+    color: var(--muted);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-result {
+    margin-top: 4px;
+    font-size: 21px;
+    font-weight: 750;
+}
+
+.history-time {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.shortcuts {
+    margin-top: auto;
+    padding-top: 20px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+kbd {
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--button);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 25px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 14px;
+    font-weight: 650;
+    opacity: 0;
+    transform: translate(-50%, 20px);
+    transition: .2s;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+@media (max-width: 800px) {
+    body {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .app {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .history {
+        min-height: 300px;
+    }
+
+    .shortcuts {
+        display: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .calc-button {
+        height: 57px;
+    }
+
+    .display {
+        height: 135px;
+    }
+
+    .result {
+        font-size: 44px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="calculator">
+
+        <div class="topbar">
+            <div class="logo">Calculator</div>
+
+            <div class="top-buttons">
+                <button class="icon-button" id="copyButton">⧉</button>
+                <button class="icon-button" id="themeButton">☀</button>
+            </div>
+        </div>
+
+        <div class="display">
+            <div class="expression" id="expression"> </div>
+            <div class="result" id="result">0</div>
+        </div>
+
+        <div class="buttons">
+
+            <button class="calc-button danger" data-action="clear">AC</button>
+            <button class="calc-button" data-action="backspace">⌫</button>
+            <button class="calc-button" data-action="percent">%</button>
+            <button class="calc-button operator" data-value="/">÷</button>
+
+            <button class="calc-button" data-value="7">7</button>
+            <button class="calc-button" data-value="8">8</button>
+            <button class="calc-button" data-value="9">9</button>
+            <button class="calc-button operator" data-value="*">×</button>
+
+            <button class="calc-button" data-value="4">4</button>
+            <button class="calc-button" data-value="5">5</button>
+            <button class="calc-button" data-value="6">6</button>
+            <button class="calc-button operator" data-value="-">−</button>
+
+            <button class="calc-button" data-value="1">1</button>
+            <button class="calc-button" data-value="2">2</button>
+            <button class="calc-button" data-value="3">3</button>
+            <button class="calc-button operator" data-value="+">+</button>
+
+            <button class="calc-button" data-action="sign">±</button>
+            <button class="calc-button" data-value="0">0</button>
+            <button class="calc-button" data-action="decimal">.</button>
+            <button class="calc-button equals" data-action="equals">=</button>
+
+            <button class="calc-button" data-action="sqrt">√</button>
+            <button class="calc-button" data-action="square">x²</button>
+            <button class="calc-button" data-action="power">xʸ</button>
+            <button class="calc-button" data-action="answer">Ans</button>
+
+            <button class="calc-button wide" data-value="(">(</button>
+            <button class="calc-button wide" data-value=")">)</button>
+
+        </div>
+    </div>
+
+    <div class="history">
+
+        <div class="history-top">
+            <div class="history-title">History</div>
+            <button class="clear-history" id="clearHistory">Clear</button>
+        </div>
+
+        <div class="history-list" id="historyList"></div>
+
+        <div class="shortcuts">
+            <b>Keyboard</b><br>
+            Numbers → <kbd>0-9</kbd><br>
+            Operators → <kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd><br>
+            Calculate → <kbd>Enter</kbd><br>
+            Delete → <kbd>Backspace</kbd><br>
+            Clear → <kbd>Escape</kbd>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+var expression = "";
+var lastAnswer = 0;
+var justCalculated = false;
+
+var expressionElement = document.getElementById("expression");
+var resultElement = document.getElementById("result");
+var historyElement = document.getElementById("historyList");
+var toastElement = document.getElementById("toast");
+
+var history = [];
+
+try {
+    history = JSON.parse(
+        localStorage.getItem("calculator-history") || "[]"
+    );
+} catch (error) {
+    history = [];
+}
+
+
+/* DISPLAY */
+
+function updateDisplay() {
+
+    var visibleExpression = expression
+        .split("*").join("×")
+        .split("/").join("÷");
+
+    expressionElement.textContent = visibleExpression;
+
+    if (expression === "") {
+        resultElement.textContent = "0";
+        return;
+    }
+
+    try {
+
+        var value = calculate(expression);
+
+        resultElement.textContent = formatNumber(value);
+
+    } catch (error) {
+
+        resultElement.textContent = "…";
+
+    }
+}
+
+
+/* NUMBER FORMATTING */
+
+function formatNumber(number) {
+
+    if (!isFinite(number)) {
+        return "Error";
+    }
+
+    if (Math.abs(number) < 0.000000000001) {
+        number = 0;
+    }
+
+    number =
+        Math.round(
+            (number + Number.EPSILON) * 1000000000000
+        ) / 1000000000000;
+
+    return String(number);
+}
+
+
+/* CALCULATOR */
+
+function calculate(input) {
+
+    var tokens = tokenize(input);
+    var position = 0;
+
+
+    function current() {
+        return tokens[position];
+    }
+
+
+    function consume(value) {
+
+        if (current() === value) {
+            position++;
+            return true;
+        }
+
+        return false;
+    }
+
+
+    function parseExpression() {
+
+        var value = parseTerm();
+
+        while (
+            current() === "+" ||
+            current() === "-"
+        ) {
+
+            var operator = current();
+
+            position++;
+
+            var right = parseTerm();
+
+            if (operator === "+") {
+                value = value + right;
+            } else {
+                value = value - right;
+            }
+        }
+
+        return value;
+    }
+
+
+    function parseTerm() {
+
+        var value = parsePower();
+
+        while (
+            current() === "*" ||
+            current() === "/"
+        ) {
+
+            var operator = current();
+
+            position++;
+
+            var right = parsePower();
+
+            if (operator === "*") {
+
+                value = value * right;
+
+            } else {
+
+                if (right === 0) {
+                    throw new Error("Division by zero");
+                }
+
+                value = value / right;
+
+            }
+        }
+
+        return value;
+    }
+
+
+    function parsePower() {
+
+        var value = parseUnary();
+
+        if (current() === "^") {
+
+            position++;
+
+            var exponent = parsePower();
+
+            value = Math.pow(value, exponent);
+        }
+
+        return value;
+    }
+
+
+    function parseUnary() {
+
+        if (consume("+")) {
+            return parseUnary();
+        }
+
+        if (consume("-")) {
+            return -parseUnary();
+        }
+
+        return parsePrimary();
+    }
+
+
+    function parsePrimary() {
+
+        var token = current();
+
+        if (typeof token === "number") {
+
+            position++;
+
+            return token;
+        }
+
+
+        if (consume("(")) {
+
+            var value = parseExpression();
+
+            if (!consume(")")) {
+                throw new Error("Missing )");
+            }
+
+            return value;
+        }
+
+        throw new Error("Invalid expression");
+    }
+
+
+    var answer = parseExpression();
+
+
+    if (position !== tokens.length) {
+        throw new Error("Unexpected token");
+    }
+
+
+    if (!isFinite(answer)) {
+        throw new Error("Invalid result");
+    }
+
+
+    return answer;
+}
+
+
+/* TOKENIZER */
+
+function tokenize(input) {
+
+    var tokens = [];
+    var i = 0;
+
+    while (i < input.length) {
+
+        var character = input.charAt(i);
+
+
+        if (character === " ") {
+            i++;
+            continue;
+        }
+
+
+        if (
+            (character >= "0" && character <= "9") ||
+            character === "."
+        ) {
+
+            var number = "";
+
+            while (i < input.length) {
+
+                var c = input.charAt(i);
+
+                if (
+                    (c >= "0" && c <= "9") ||
+                    c === "."
+                ) {
+
+                    number += c;
+                    i++;
+
+                } else {
+
+                    break;
+
+                }
+            }
+
+
+            var dots = (number.match(/\./g) || []).length;
+
+            if (dots > 1) {
+                throw new Error("Invalid number");
+            }
+
+            if (number === ".") {
+                throw new Error("Invalid number");
+            }
+
+            tokens.push(Number(number));
+
+            continue;
+        }
+
+
+        if (
+            character === "+" ||
+            character === "-" ||
+            character === "*" ||
+            character === "/" ||
+            character === "^" ||
+            character === "(" ||
+            character === ")"
+        ) {
+
+            tokens.push(character);
+
+            i++;
+
+            continue;
+        }
+
+
+        throw new Error("Invalid character");
+    }
+
+
+    return tokens;
+}
+
+
+/* INPUT */
+
+function addValue(value) {
+
+    if (justCalculated) {
+
+        if (
+            (value >= "0" && value <= "9") ||
+            value === "." ||
+            value === "("
+        ) {
+            expression = "";
+        }
+
+        justCalculated = false;
+    }
+
+
+    expression += value;
+
+    updateDisplay();
+}
+
+
+function addOperator(operator) {
+
+    if (expression === "") {
+
+        if (operator === "-") {
+            expression = "-";
+        } else {
+            return;
+        }
+
+    } else {
+
+        var last = expression.charAt(
+            expression.length - 1
+        );
+
+
+        if (
+            last === "+" ||
+            last === "-" ||
+            last === "*" ||
+            last === "/" ||
+            last === "^"
+        ) {
+
+            expression =
+                expression.substring(
+                    0,
+                    expression.length - 1
+                ) + operator;
+
+        } else {
+
+            expression += operator;
+
+        }
+    }
+
+
+    justCalculated = false;
+
+    updateDisplay();
+}
+
+
+function addDecimal() {
+
+    if (justCalculated) {
+
+        expression = "";
+        justCalculated = false;
+
+    }
+
+
+    var pieces =
+        expression.split(/[+\-*/^()]/);
+
+    var currentNumber =
+        pieces[pieces.length - 1] || "";
+
+
+    if (currentNumber.indexOf(".") === -1) {
+
+        if (
+            expression === "" ||
+            /[+\-*/^(]$/.test(expression)
+        ) {
+
+            expression += "0.";
+
+        } else {
+
+            expression += ".";
+
+        }
+    }
+
+
+    updateDisplay();
+}
+
+
+function clearCalculator() {
+
+    expression = "";
+    justCalculated = false;
+
+    updateDisplay();
+}
+
+
+function backspace() {
+
+    expression =
+        expression.substring(
+            0,
+            expression.length - 1
+        );
+
+    justCalculated = false;
+
+    updateDisplay();
+}
+
+
+/* EXTRA FUNCTIONS */
+
+function changeSign() {
+
+    if (expression === "") {
+
+        expression = "-";
+
+        updateDisplay();
+
+        return;
+    }
+
+
+    try {
+
+        var value = calculate(expression);
+
+        expression = formatNumber(-value);
+
+        justCalculated = false;
+
+        updateDisplay();
+
+    } catch (error) {
+
+        if (expression.charAt(0) === "-") {
+
+            expression =
+                expression.substring(1);
+
+        } else {
+
+            expression = "-" + expression;
+
+        }
+
+        updateDisplay();
+    }
+}
+
+
+function percentage() {
+
+    try {
+
+        var value = calculate(expression);
+
+        expression = formatNumber(value / 100);
+
+        updateDisplay();
+
+    } catch (error) {
+
+        showToast("Invalid expression");
+
+    }
+}
+
+
+function squareRoot() {
+
+    try {
+
+        var value = calculate(expression);
+
+        if (value < 0) {
+            throw new Error();
+        }
+
+        var answer = Math.sqrt(value);
+
+        expression = formatNumber(answer);
+
+        lastAnswer = answer;
+
+        updateDisplay();
+
+    } catch (error) {
+
+        showToast("Cannot calculate square root");
+
+    }
+}
+
+
+function square() {
+
+    try {
+
+        var value = calculate(expression);
+
+        var answer = value * value;
+
+        expression = formatNumber(answer);
+
+        lastAnswer = answer;
+
+        updateDisplay();
+
+    } catch (error) {
+
+        showToast("Invalid number");
+
+    }
+}
+
+
+function power() {
+
+    try {
+
+        var value = calculate(expression);
+
+        expression = formatNumber(value) + "^";
+
+        justCalculated = false;
+
+        updateDisplay();
+
+    } catch (error) {
+
+        showToast("Invalid number");
+
+    }
+}
+
+
+function useAnswer() {
+
+    expression = formatNumber(lastAnswer);
+
+    justCalculated = false;
+
+    updateDisplay();
+}
+
+
+/* EQUALS */
+
+function calculateResult() {
+
+    if (expression === "") {
+        return;
+    }
+
+
+    try {
+
+        var value = calculate(expression);
+
+        var formatted = formatNumber(value);
+
+
+        addHistory(
+            expression,
+            formatted
+        );
+
+
+        lastAnswer = value;
+
+        expression = formatted;
+
+        justCalculated = true;
+
+        updateDisplay();
+
+    } catch (error) {
+
+        resultElement.textContent = "Error";
+
+        showToast("Invalid calculation");
+    }
+}
+
+
+/* HISTORY */
+
+function addHistory(expressionText, resultText) {
+
+    history.unshift({
+
+        expression: expressionText,
+
+        result: resultText,
+
+        time: new Date().toLocaleTimeString(
+            [],
+            {
+                hour: "numeric",
+                minute: "2-digit"
+            }
+        )
+
+    });
+
+
+    history =
+        history.slice(0, 100);
+
+
+    try {
+
+        localStorage.setItem(
+            "calculator-history",
+            JSON.stringify(history)
+        );
+
+    } catch (error) {}
+
+
+    renderHistory();
+}
+
+
+function renderHistory() {
+
+    historyElement.innerHTML = "";
+
+
+    if (history.length === 0) {
+
+        var empty =
+            document.createElement("div");
+
+        empty.className = "empty";
+
+        empty.textContent =
+            "No calculations yet.";
+
+        historyElement.appendChild(empty);
+
+        return;
+    }
+
+
+    history.forEach(function(item) {
+
+        var element =
+            document.createElement("div");
+
+        element.className =
+            "history-item";
+
+
+        var expressionText =
+            document.createElement("div");
+
+        expressionText.className =
+            "history-expression";
+
+        expressionText.textContent =
+            item.expression
+                .split("*").join("×")
+                .split("/").join("÷");
+
+
+        var resultText =
+            document.createElement("div");
+
+        resultText.className =
+            "history-result";
+
+        resultText.textContent =
+            "= " + item.result;
+
+
+        var timeText =
+            document.createElement("div");
+
+        timeText.className =
+            "history-time";
+
+        timeText.textContent =
+            item.time;
+
+
+        element.appendChild(expressionText);
+        element.appendChild(resultText);
+        element.appendChild(timeText);
+
+
+        element.onclick = function() {
+
+            expression = item.result;
+
+            justCalculated = false;
+
+            updateDisplay();
+
+        };
+
+
+        historyElement.appendChild(element);
+
+    });
+}
+
+
+/* TOAST */
+
+function showToast(message) {
+
+    toastElement.textContent = message;
+
+    toastElement.className = "toast show";
+
+
+    clearTimeout(window.calculatorToast);
+
+
+    window.calculatorToast =
+        setTimeout(function() {
+
+            toastElement.className = "toast";
+
+        }, 1600);
+}
+
+
+/* COPY */
+
+document.getElementById("copyButton").onclick =
+function() {
+
+    var value =
+        resultElement.textContent;
+
+
+    if (
+        value === "" ||
+        value === "Error" ||
+        value === "…"
+    ) {
+        return;
+    }
+
+
+    if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ) {
+
+        navigator.clipboard.writeText(value)
+            .then(function() {
+
+                showToast("Result copied");
+
+            })
+            .catch(function() {
+
+                showToast("Copy failed");
+
+            });
+
+    } else {
+
+        showToast("Clipboard unavailable");
+
+    }
+};
+
+
+/* THEME */
+
+document.getElementById("themeButton").onclick =
+function() {
+
+    document.body.classList.toggle("light");
+
+
+    var isLight =
+        document.body.classList.contains("light");
+
+
+    try {
+
+        localStorage.setItem(
+            "calculator-theme",
+            isLight ? "light" : "dark"
+        );
+
+    } catch (error) {}
+
+
+    this.textContent =
+        isLight ? "☾" : "☀";
+};
+
+
+/* CLEAR HISTORY */
+
+document.getElementById("clearHistory").onclick =
+function() {
+
+    history = [];
+
+
+    try {
+
+        localStorage.removeItem(
+            "calculator-history"
+        );
+
+    } catch (error) {}
+
+
+    renderHistory();
+
+    showToast("History cleared");
+};
+
+
+/* BUTTONS */
+
+var buttons =
+    document.querySelectorAll(".calc-button");
+
+
+buttons.forEach(function(button) {
+
+    button.onclick = function() {
+
+        var value =
+            button.getAttribute("data-value");
+
+        var action =
+            button.getAttribute("data-action");
+
+
+        if (value !== null) {
+
+            if (
+                value === "+" ||
+                value === "-" ||
+                value === "*" ||
+                value === "/" ||
+                value === "^"
+            ) {
+
+                addOperator(value);
+
+            } else {
+
+                addValue(value);
+
+            }
+
+            return;
+        }
+
+
+        if (action === "clear") {
+            clearCalculator();
+        }
+
+        else if (action === "backspace") {
+            backspace();
+        }
+
+        else if (action === "percent") {
+            percentage();
+        }
+
+        else if (action === "decimal") {
+            addDecimal();
+        }
+
+        else if (action === "equals") {
+            calculateResult();
+        }
+
+        else if (action === "sign") {
+            changeSign();
+        }
+
+        else if (action === "sqrt") {
+            squareRoot();
+        }
+
+        else if (action === "square") {
+            square();
+        }
+
+        else if (action === "power") {
+            power();
+        }
+
+        else if (action === "answer") {
+            useAnswer();
+        }
+
+    };
+
+});
+
+
+/* KEYBOARD */
+
+document.onkeydown = function(event) {
+
+    var key = event.key;
+
+
+    if (
+        key >= "0" &&
+        key <= "9"
+    ) {
+
+        addValue(key);
+
+        return;
+    }
+
+
+    if (
+        key === "+" ||
+        key === "-" ||
+        key === "*" ||
+        key === "/" ||
+        key === "^"
+    ) {
+
+        addOperator(key);
+
+        return;
+    }
+
+
+    if (key === ".") {
+
+        addDecimal();
+
+        return;
+    }
+
+
+    if (
+        key === "(" ||
+        key === ")"
+    ) {
+
+        addValue(key);
+
+        return;
+    }
+
+
+    if (
+        key === "Enter" ||
+        key === "="
+    ) {
+
+        event.preventDefault();
+
+        calculateResult();
+
+        return;
+    }
+
+
+    if (key === "Backspace") {
+
+        backspace();
+
+        return;
+    }
+
+
+    if (
+        key === "Escape" ||
+        key === "Delete"
+    ) {
+
+        clearCalculator();
+
+    }
+
+};
+
+
+/* LOAD SETTINGS */
+
+try {
+
+    if (
+        localStorage.getItem(
+            "calculator-theme"
+        ) === "light"
+    ) {
+
+        document.body.classList.add("light");
+
+        document.getElementById(
+            "themeButton"
+        ).textContent = "☾";
+
+    }
+
+} catch (error) {}
+
+
+/* START */
+
+renderHistory();
+updateDisplay();
+
+</script>
+
+</body>
+</html>
+
